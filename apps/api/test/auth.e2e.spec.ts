@@ -1,4 +1,4 @@
-import request from 'supertest';
+import 'reflect-metadata';
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../src/app.module';

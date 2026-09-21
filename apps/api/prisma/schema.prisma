@@ -57,6 +57,56 @@ enum QuestionLanguage {
   DE
 }
 
+// Additional enums
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  PAYPAL
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum Metric {
+  USAGE
+  API_CALLS
+  STORAGE
+}
+
+enum AIJobType {
+  IMAGE
+  TEXT
+  AUDIO
+}
+
+enum AIJobStatus {
+  QUEUED
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum NotificationType {
+  MENTOR_MESSAGE
+  INTERVIEW_REMINDER
+  ALERT
+}
+
+enum Speaker {
+  USER
+  AI
+}
+
 // Session status for interview sessions
 enum InterviewStatus {
   CREATED
@@ -76,17 +126,17 @@ model User {
   email           String            @unique
   password        String
   role            Role
-  profile         UserProfile       @relation(fields: [profileId], references: [id])
-  profileId       String
+  profile            UserProfile       @relation(fields: [profileId], references: [id])
+  profileId       String @unique
   sessions        InterviewSession[]
   auditLogs       AuditLog[]
   isActive        Boolean           @default(true)
   failedLoginAttempts Int           @default(0)
-  lockedUntil     DateTime?         @default(null)
+  lockedUntil     DateTime?
 
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
-  deletedAt DateTime?         @default(null)
+  deletedAt DateTime?
   @@index([email])
 }
 
@@ -122,7 +172,7 @@ model Question {
   versions  QuestionVersion[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
-  deletedAt DateTime?        @default(null)
+  deletedAt DateTime?
 }
 
 model QuestionVersion {
@@ -149,8 +199,8 @@ model InterviewSession {
   user        User              @relation(fields: [userId], references: [id])
 
   status      InterviewStatus   @default(CREATED)
-  startedAt   DateTime?          @default(null)
-  endedAt     DateTime?          @default(null)
+  startedAt   DateTime?
+  endedAt     DateTime?
 
   track       QuestionCategory  @default(TECHNICAL)
   seniority   QuestionSeniority  @default(JUNIOR)
@@ -161,7 +211,7 @@ model InterviewSession {
 
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
-  deletedAt   DateTime?         @default(null)
+  deletedAt   DateTime?
 }
 
 model SessionQuestion {
@@ -201,8 +251,8 @@ model Evaluation {
 
 model DeliveryMetrics {
   id          String   @id @default(uuid())
-  sessionId   String
-  session     InterviewSession @relation(fields: [sessionId], references: [id])
+  sessionId   String @unique
+  session  InterviewSession @relation(fields: [sessionId], references: [id])
   speechScore     Int?
   sentimentScore  Int?
   recordingUrl    String?
@@ -211,10 +261,16 @@ model DeliveryMetrics {
 
 model SessionSummary {
   id          String   @id @default(uuid())
-  sessionId   String
-  session     InterviewSession @relation(fields: [sessionId], references: [id])
+  sessionId   String @unique
+  session  InterviewSession @relation(fields: [sessionId], references: [id])
   summaryText String
   createdAt   DateTime @default(now())
+}
+
+model Plan {
+  id    String @id @default(uuid())
+  name  String
+  price Int
 }
 
 model Subscription {
@@ -229,10 +285,11 @@ model Subscription {
   createdAt   DateTime          @default(now())
 }
 
+
 model Payment {
   id            String   @id @default(uuid())
   subscription  Subscription @relation(fields: [subscriptionId], references: [id])
-  subscriptionId String
+  subscriptionId String @unique
   amount        Int
   currency      String
   paymentMethod PaymentMethod
