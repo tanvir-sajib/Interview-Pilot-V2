@@ -1,0 +1,50 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: interview_coach
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.api
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+
+  web:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.web
+    depends_on:
+      - api
+    ports:
+      - "3001:3000"
+
+  ai-service:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.ai
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:

@@ -1,0 +1,285 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["nativeTypes"]
+}
+
+// Datasource connects to PostgreSQL. The actual URL is supplied via DATABASE_URL env var
+// during development or CI.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// General enums
+enum Role {
+  ADMIN
+  USER
+  INSTRUCTOR
+}
+
+// Question related enums
+enum QuestionRole {
+  TECHNICAL
+  HR
+}
+
+enum QuestionSeniority {
+  JUNIOR
+  MID
+  SENIOR
+}
+
+enum QuestionCategory {
+  TECHNICAL
+  HR_BEHAVIORAL
+  LEADERSHIP
+  DESIGN
+}
+
+enum QuestionDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuestionStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum QuestionLanguage {
+  EN
+  ES
+  FR
+  DE
+}
+
+// Session status for interview sessions
+enum InterviewStatus {
+  CREATED
+  READY
+  IN_PROGRESS
+  PROCESSING
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+// =======================
+// Core models
+// =======================
+model User {
+  id              String            @id @default(uuid())
+  email           String            @unique
+  password        String
+  role            Role
+  profile         UserProfile       @relation(fields: [profileId], references: [id])
+  profileId       String
+  sessions        InterviewSession[]
+  auditLogs       AuditLog[]
+  isActive        Boolean           @default(true)
+  failedLoginAttempts Int           @default(0)
+  lockedUntil     DateTime?         @default(null)
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  deletedAt DateTime?         @default(null)
+  @@index([email])
+}
+
+model UserProfile {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id])
+
+  firstName String?
+  lastName  String?
+  avatarUrl String?
+  bio       String?
+}
+
+model Question {
+  id                String            @id @default(uuid())
+  title             String
+  text              String
+  tags              String[]          @default([])
+  authorId          String
+  author            User              @relation(fields: [authorId], references: [id])
+
+  role              QuestionRole
+  seniority         QuestionSeniority
+  category          QuestionCategory
+  difficulty        QuestionDifficulty
+  expectedConcepts  String[]          @default([])
+  rubric            String
+  language          QuestionLanguage
+  status            QuestionStatus
+
+  isActive  Boolean          @default(true)
+  versions  QuestionVersion[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  deletedAt DateTime?        @default(null)
+}
+
+model QuestionVersion {
+  id                  String   @id @default(uuid())
+  questionId          String
+  question            Question @relation(fields: [questionId], references: [id])
+  versionNumber       Int
+
+  role                QuestionRole
+  seniority           QuestionSeniority
+  category            QuestionCategory
+  difficulty          QuestionDifficulty
+  tags                String[]          @default([])
+  expectedConcepts    String[]          @default([])
+  rubric              String
+  language            QuestionLanguage
+  content             String
+  createdAt           DateTime @default(now())
+}
+
+model InterviewSession {
+  id          String            @id @default(uuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+
+  status      InterviewStatus   @default(CREATED)
+  startedAt   DateTime?          @default(null)
+  endedAt     DateTime?          @default(null)
+
+  track       QuestionCategory  @default(TECHNICAL)
+  seniority   QuestionSeniority  @default(JUNIOR)
+
+  questions   SessionQuestion[]
+  metrics     DeliveryMetrics?
+  summary     SessionSummary?
+
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deletedAt   DateTime?         @default(null)
+}
+
+model SessionQuestion {
+  id            String             @id @default(uuid())
+  sessionId     String
+  session       InterviewSession   @relation(fields: [sessionId], references: [id])
+  questionId    String
+  question      Question           @relation(fields: [questionId], references: [id])
+  order         Int
+  activeAt      DateTime?
+
+  answers       Answer[]
+  createdAt     DateTime            @default(now())
+  @@index([questionId])
+  @@index([sessionId])
+}
+
+model Answer {
+  id                String            @id @default(uuid())
+  sessionQuestionId String
+  sessionQuestion   SessionQuestion   @relation(fields: [sessionQuestionId], references: [id])
+  speaker           Speaker
+  content           String
+  duration          Int?
+  createdAt         DateTime          @default(now())
+}
+
+model Evaluation {
+  id          String   @id @default(uuid())
+  answerId    String
+  answer      Answer   @relation(fields: [answerId], references: [id])
+  evaluator   Role
+  score       Int
+  feedback    String?
+  createdAt   DateTime @default(now())
+}
+
+model DeliveryMetrics {
+  id          String   @id @default(uuid())
+  sessionId   String
+  session     InterviewSession @relation(fields: [sessionId], references: [id])
+  speechScore     Int?
+  sentimentScore  Int?
+  recordingUrl    String?
+  createdAt   DateTime @default(now())
+}
+
+model SessionSummary {
+  id          String   @id @default(uuid())
+  sessionId   String
+  session     InterviewSession @relation(fields: [sessionId], references: [id])
+  summaryText String
+  createdAt   DateTime @default(now())
+}
+
+model Subscription {
+  id          String            @id @default(uuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id])
+  plan        Plan
+  status      SubscriptionStatus
+  startedAt   DateTime          @default(now())
+  endedAt     DateTime?
+  payments    Payment[]
+  createdAt   DateTime          @default(now())
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  subscription  Subscription @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String
+  amount        Int
+  currency      String
+  paymentMethod PaymentMethod
+  status        PaymentStatus
+  transactionId String @unique
+  createdAt     DateTime @default(now())
+  @@index([subscriptionId])
+}
+
+model UsageRecord {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  metric      Metric
+  amount      Int
+  period      DateTime
+  createdAt   DateTime @default(now())
+}
+
+model AIJob {
+  id          String   @id @default(uuid())
+  type        AIJobType
+  status      AIJobStatus
+  payload     Json
+  createdAt   DateTime @default(now())
+  finishedAt  DateTime?
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        NotificationType
+  title       String
+  body        String
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  action      String
+  details     Json
+  createdAt   DateTime @default(now())
+  @@index([userId])
+}
+
+// Indexes for performance

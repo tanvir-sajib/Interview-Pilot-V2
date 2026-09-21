@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "ai-service",
+    "workers"
+  ],
+  "scripts": {
+    "dev": "echo 'dev script to be added'",
+    "build": "echo 'build script to be added'",
+    "lint": "echo 'lint script to be added'"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
