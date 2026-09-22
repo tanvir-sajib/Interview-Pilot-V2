@@ -64,22 +64,33 @@ export class QuestionsService {
     });
     const newVersionNumber = latestVersion ? latestVersion.versionNumber + 1 : 1;
     const updatedFields = {
-      role: dto.role ?? latestVersion?.role,
-      seniority: dto.seniority ?? latestVersion?.seniority,
-      category: dto.category ?? latestVersion?.category,
-      difficulty: dto.difficulty ?? latestVersion?.difficulty,
-      tags: dto.tags ?? latestVersion?.tags,
-      expectedConcepts: dto.expectedConcepts ?? latestVersion?.expectedConcepts,
-      rubric: dto.rubric ?? latestVersion?.rubric,
-      language: dto.language ?? latestVersion?.language,
-      content: dto.text ?? latestVersion?.content,
+      role: dto.role ?? latestVersion!.role,
+      seniority: dto.seniority ?? latestVersion!.seniority,
+      category: dto.category ?? latestVersion!.category,
+      difficulty: dto.difficulty ?? latestVersion!.difficulty,
+      tags: dto.tags ?? latestVersion!.tags,
+      expectedConcepts: dto.expectedConcepts ?? latestVersion!.expectedConcepts,
+      rubric: dto.rubric ?? latestVersion!.rubric ?? existing.rubric,
+      language: dto.language ?? latestVersion!.language,
+      content: dto.text ?? latestVersion!.content,
     };
-    await this.prisma.questionVersion.create({ data: { ...updatedFields, questionId: id, versionNumber: newVersionNumber } });
+    await this.prisma.questionVersion.create({
+      data: {
+        ...updatedFields,
+        questionId: id,
+        versionNumber: newVersionNumber,
+      },
+    });
     // Update the question metadata for quick access
-    await this.prisma.question.update({ where: { id }, data: { ...updatedFields, title: dto.title ?? existing.title } });
+    await this.prisma.question.update({
+      where: { id },
+      data: {
+        ...updatedFields,
+        title: dto.title ?? existing.title,
+      },
+    });
     return this.prisma.question.findUnique({ where: { id }, include: { versions: true } });
   }
-
   async setStatus(id: string, status: QuestionStatus) {
     await this.prisma.question.update({ where: { id }, data: { status } });
   }

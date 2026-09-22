@@ -133,6 +133,10 @@ model User {
   isActive        Boolean           @default(true)
   failedLoginAttempts Int           @default(0)
   lockedUntil     DateTime?
+  questions Question[]
+  subscriptions Subscription[]
+  usageRecords UsageRecord[]
+  notifications Notification[]
 
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
@@ -142,8 +146,7 @@ model User {
 
 model UserProfile {
   id         String   @id @default(uuid())
-  userId     String   @unique
-  user       User     @relation(fields: [userId], references: [id])
+  user User? @relation
 
   firstName String?
   lastName  String?
@@ -170,6 +173,7 @@ model Question {
 
   isActive  Boolean          @default(true)
   versions  QuestionVersion[]
+  sessionQuestions SessionQuestion[]
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   deletedAt DateTime?
@@ -187,7 +191,7 @@ model QuestionVersion {
   difficulty          QuestionDifficulty
   tags                String[]          @default([])
   expectedConcepts    String[]          @default([])
-  rubric              String
+  rubric              String?
   language            QuestionLanguage
   content             String
   createdAt           DateTime @default(now())
@@ -237,6 +241,7 @@ model Answer {
   content           String
   duration          Int?
   createdAt         DateTime          @default(now())
+  evaluations Evaluation[]
 }
 
 model Evaluation {
@@ -271,13 +276,15 @@ model Plan {
   id    String @id @default(uuid())
   name  String
   price Int
+  subscriptions Subscription[]
 }
 
 model Subscription {
   id          String            @id @default(uuid())
   userId      String
   user        User              @relation(fields: [userId], references: [id])
-  plan        Plan
+  planId      String
+  plan        Plan              @relation(fields: [planId], references: [id])
   status      SubscriptionStatus
   startedAt   DateTime          @default(now())
   endedAt     DateTime?

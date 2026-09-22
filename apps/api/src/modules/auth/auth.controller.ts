@@ -5,7 +5,7 @@ import { LoginDto } from './dto/login.dto';
 import { Request } from 'express';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
-@Controller('auth')
+@Controller('api/v1/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -14,11 +14,13 @@ export class AuthController {
     return this.authService.register(dto.email, dto.password);
   }
 
+  @HttpCode(200)
   @Post('login')
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password);
   }
 
+  @HttpCode(200)
   @Post('refresh')
   async refresh(@Body('refreshToken') refreshToken: string) {
     return this.authService.refresh(refreshToken);
@@ -26,7 +28,7 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  async logout(@Req() req: Request) {
+  async logout(@Req() req: any) {
     const user = req.user as any;
     // Expect refresh token included in body; alternatively from header 'x-refresh-token'
     const refreshToken = req.headers['x-refresh-token'] as string | undefined;
@@ -34,10 +36,11 @@ export class AuthController {
     return this.authService.logout(user.userId, refreshToken);
   }
 
+  @HttpCode(200)
   @Post('change-password')
   @UseGuards(JwtAuthGuard)
   async changePassword(
-    @Req() req: Request,
+    @Req() req: any,
     @Body('oldPassword') oldPassword: string,
     @Body('newPassword') newPassword: string,
   ) {

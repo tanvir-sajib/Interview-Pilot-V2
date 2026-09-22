@@ -16,7 +16,7 @@ export class AuthService {
   async register(email: string, password: string) {
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) throw new BadRequestException('Email already in use');
-    const saltRounds = this.config.get<number>('BCRYPT_SALT_ROUNDS') || 12;
+    const saltRounds = Number(this.config.get<string>('BCRYPT_SALT_ROUNDS')) || 12;
     const hash = await bcrypt.hash(password, saltRounds);
     const domain = email.split('@')[1];
     const role = domain === 'admin.example.com' ? 'ADMIN' : 'USER';
@@ -55,7 +55,7 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) return;
     const newAttempts = user.failedLoginAttempts + 1;
-    let updateData: any = { failedLoginAttempts: newAttempts };
+    const updateData: any = { failedLoginAttempts: newAttempts };
     if (newAttempts >= 5) {
       const lockedUntil = new Date();
       lockedUntil.setMinutes(lockedUntil.getMinutes() + 15);
@@ -92,7 +92,7 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('User not found');
     const match = await bcrypt.compare(oldPassword, user.password);
     if (!match) throw new UnauthorizedException('Old password incorrect');
-    const hashed = await bcrypt.hash(newPassword, this.config.get<number>('BCRYPT_SALT_ROUNDS') || 12);
+    const hashed = await bcrypt.hash(newPassword, Number(this.config.get<string>('BCRYPT_SALT_ROUNDS')) || 12);
     await this.prisma.user.update({ where: { id: userId }, data: { password: hashed } });
     return { success: true };
   }

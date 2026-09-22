@@ -1,40 +1,40 @@
 import { IsString, IsNotEmpty, IsArray, IsOptional, IsEnum, ArrayNotEmpty, MaxLength, MinLength } from 'class-validator';
-import { QuestionRole, QuestionSeniority, QuestionCategory, QuestionDifficulty, QuestionLanguage } from '../../prisma/client';
+import { QuestionRole, QuestionSeniority, QuestionCategory, QuestionDifficulty, QuestionLanguage } from '@prisma/client';
 
 export class CreateQuestionDto {
   @IsString()
   @MinLength(1)
   @MaxLength(200)
-  title: string;
+  title!: string;
 
   @IsString()
   @IsNotEmpty()
-  text: string;
+  text!: string;
 
   @IsEnum(QuestionRole)
-  role: QuestionRole;
+  role!: QuestionRole;
 
   @IsEnum(QuestionSeniority)
-  seniority: QuestionSeniority;
+  seniority!: QuestionSeniority;
 
   @IsEnum(QuestionCategory)
-  category: QuestionCategory;
+  category!: QuestionCategory;
 
   @IsEnum(QuestionDifficulty)
-  difficulty: QuestionDifficulty;
+  difficulty!: QuestionDifficulty;
 
   @IsArray()
   @ArrayNotEmpty()
   @IsString({ each: true })
-  tags: string[];
+  tags!: string[];
 
   @IsArray()
   @IsString({ each: true })
-  expectedConcepts: string[];
+  expectedConcepts!: string[];
 
   @IsString()
-  rubric: string;
+  rubric!: string;
 
   @IsEnum(QuestionLanguage)
-  language: QuestionLanguage;
+  language!: QuestionLanguage;
 }

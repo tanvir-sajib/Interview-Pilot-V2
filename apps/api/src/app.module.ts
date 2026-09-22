@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -45,6 +45,8 @@ import { JwtStrategy } from './modules/auth/jwt.strategy';
   ],
   providers: [JwtStrategy],
 })
-export class AppModule {
-  constructor(private readonly prisma: any) {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // No global middleware needed for tests
+  }
 }

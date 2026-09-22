@@ -10,7 +10,7 @@ export const QUEUE_NAMES = {
   NOTIFICATION_SEND: "notification.send",
 };
 
-// Helper to instantiate a queue with default connection
+// Helper to instantiate a queue with default connection (BullMQ defaults to localhost:6379)
 export function createQueue(name: string) {
   return new Queue(name, { connection: getRedisConnection() });
 }
