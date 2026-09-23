@@ -29,12 +29,14 @@ async function startWorker() {
         // For simplicity we import the gateway lazily to avoid circular dependencies.
         const { EvaluationGateway } = await import('../gateways/evaluation.gateway');
         EvaluationGateway.instance?.emitEvaluationStarted(answerId, userId);
-      } catch (_) {}
+      } catch (_) {
+        // ignore if gateway not available
+        void 0;
+      }
 
       try {
         const result: EvaluationResult = await providerService.evaluateAnswer(content);
         // Persist the result using the EvaluationsService logic.
-        await providerService;
         // Directly use Prisma to store evaluation (simplified).
         await prisma.evaluation.create({
           data: {
@@ -48,15 +50,21 @@ async function startWorker() {
         try {
           const { EvaluationGateway } = await import('../gateways/evaluation.gateway');
           EvaluationGateway.instance?.emitEvaluationCompleted(answerId, result);
-        } catch (_) {}
+        } catch (_) {
+          // ignore if gateway not available
+          void 0;
+        }
         return result;
       } catch (error) {
-        logger.error(`Evaluation job ${job.id} failed: ${error?.message}`);
+        logger.error(`Evaluation job ${job.id} failed: ${(error as any)?.message}`);
         // Emit failed event.
         try {
           const { EvaluationGateway } = await import('../gateways/evaluation.gateway');
           EvaluationGateway.instance?.emitEvaluationFailed(answerId, error);
-        } catch (_) {}
+        } catch (_) {
+          // ignore if gateway not available
+          void 0;
+        }
         throw error; // Let BullMQ handle retries according to job options.
       }
     },

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Queue, JobOptions } from 'bullmq';
+import { Queue, JobsOptions } from 'bullmq';
 import { createQueue, QUEUE_NAMES } from '../../queues/queues';
 import { LLMProviderService } from '../ai/llm-provider.service';
 import { EvaluationResult } from '../ai/llm-provider.interface';
@@ -32,7 +32,7 @@ export class EvaluationsService {
     // Fetch answer content to include in the job payload.
     const answer = await this.prisma.answer.findUnique({
       where: { id: answerId },
-      include: { sessionQuestion: true },
+      include: { sessionQuestion: { include: { question: true } } },
     });
     if (!answer) {
       throw new Error(`Answer ${answerId} not found`);
@@ -46,7 +46,7 @@ export class EvaluationsService {
       rubric: answer.sessionQuestion?.question?.rubric,
     };
 
-    const jobOpts: JobOptions = {
+    const jobOpts: JobsOptions = {
       attempts: 3,
       backoff: { type: 'exponential', delay: 5000 },
       // Prevent blocking the API for long-running evaluations.

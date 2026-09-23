@@ -23,7 +23,6 @@ export class MockLLMProvider implements ILLMProvider {
     }
     if (this.failMode === 'malformed') {
       // Return data that fails validation.
-      // @ts-ignore – deliberately malformed.
       return { unexpected: true } as any;
     }
     if (this.failMode === 'rate-limit') {

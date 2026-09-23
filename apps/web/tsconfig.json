@@ -5,8 +5,22 @@
     "moduleResolution": "node",
     "noEmit": true,
     "isolatedModules": true,
-    "target": "es2017"
+    "target": "es2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "incremental": true,
+    "resolveJsonModule": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

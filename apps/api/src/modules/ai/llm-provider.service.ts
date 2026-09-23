@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ILLMProvider } from './llm-provider.interface';
+import { ILLMProvider, EvaluationResult } from './llm-provider.interface';
 import { MockLLMProvider } from './mock-llm.provider';
 
 /**
@@ -28,19 +28,28 @@ export class LLMProviderService implements ILLMProvider {
   }
 
   // Delegate all ILLMProvider methods to the concrete implementation.
-  evaluateAnswer(answer: string, context?: any) {
+  async evaluateAnswer(answer: string, context?: any): Promise<EvaluationResult> {
     return this.provider.evaluateAnswer(answer, context);
   }
 
-  generateFeedback?(result: any) {
-    return this.provider.generateFeedback?.(result);
+  async generateFeedback(result: EvaluationResult): Promise<string> {
+    if (this.provider.generateFeedback) {
+      return this.provider.generateFeedback(result);
+    }
+    return '';
   }
 
-  generateQuestion?(result: any) {
-    return this.provider.generateQuestion?.(result);
+  async generateQuestion(result: EvaluationResult): Promise<string> {
+    if (this.provider.generateQuestion) {
+      return this.provider.generateQuestion(result);
+    }
+    return '';
   }
 
-  summarizeSession?(sessionId: string) {
-    return this.provider.summarizeSession?.(sessionId);
+  async summarizeSession(sessionId: string): Promise<string> {
+    if (this.provider.summarizeSession) {
+      return this.provider.summarizeSession(sessionId);
+    }
+    return '';
   }
 }

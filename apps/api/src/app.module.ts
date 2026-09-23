@@ -17,6 +17,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './modules/auth/jwt.strategy';
 import { EvaluationGateway } from './gateways/evaluation.gateway';
+import { AudioModule } from './modules/audio/audio.module';
+import { BillingModule } from './modules/billing/billing.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { EvaluationGateway } from './gateways/evaluation.gateway';
     AdminModule,
     AIModule,
     HealthModule,
+    AudioModule,
+    BillingModule,
   ],
   providers: [JwtStrategy, EvaluationGateway],
 })
