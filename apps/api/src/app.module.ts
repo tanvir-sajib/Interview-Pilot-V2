@@ -16,6 +16,7 @@ import { HealthModule } from './modules/health/health.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './modules/auth/jwt.strategy';
+import { EvaluationGateway } from './gateways/evaluation.gateway';
 
 @Module({
   imports: [
@@ -43,7 +44,7 @@ import { JwtStrategy } from './modules/auth/jwt.strategy';
     AIModule,
     HealthModule,
   ],
-  providers: [JwtStrategy],
+  providers: [JwtStrategy, EvaluationGateway],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
