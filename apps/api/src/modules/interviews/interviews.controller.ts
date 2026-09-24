@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, NotFoundException, HttpCode } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -37,6 +37,15 @@ export class InterviewsController {
   @UseGuards(JwtAuthGuard)
   async submitAnswer(@Param('id') sessionId: string, @Body() body: { questionId: string; content: string }) {
     return this.interviewsService.submitAnswer(sessionId, body.questionId, body.content);
+  }
+
+  @HttpCode(200)
+  @Post(':id/cancel')
+  @UseGuards(JwtAuthGuard)
+  async cancel(@Param('id') id: string) {
+    const session = await this.interviewsService.cancelSession(id);
+    if (!session) throw new NotFoundException('Session not found');
+    return session;
   }
 
   @Post(':id/complete')

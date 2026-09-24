@@ -37,8 +37,9 @@ export class MockPaymentProvider implements IPaymentProvider {
   async handleWebhook(payload: any, signature: string): Promise<void> {
     const payloadString = JSON.stringify(payload);
     const expected = crypto.createHmac("sha256", this.secret).update(payloadString).digest("hex");
-    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
-      throw new Error("Invalid webhook signature");
+    // Simple string comparison for mock – in a real provider use HMAC verification.
+    if (signature !== expected) {
+      throw new Error('Invalid webhook signature');
     }
     const { id, providerPaymentId, status } = payload;
     // Idempotency: ignore if already processed

@@ -3,6 +3,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma, InterviewStatus } from '@prisma/client';
 import { CreateInterviewDto } from './dto/create-interview.dto';
 
+/**
+ * Service handling interview session lifecycle.
+ * Added validation to reject answer submissions when the session is not IN_PROGRESS.
+ */
 @Injectable()
 export class InterviewsService {
   constructor(private prisma: PrismaService) {}
@@ -39,6 +43,9 @@ export class InterviewsService {
   }
 
   async submitAnswer(sessionId: string, questionId: string, content: string) {
+    const session = await this.prisma.interviewSession.findUnique({ where: { id: sessionId } });
+    if (!session) throw new NotFoundException('Session not found');
+    if (session.status !== InterviewStatus.IN_PROGRESS) throw new BadRequestException('Invalid session state');
     const sq = await this.prisma.sessionQuestion.findFirst({ where: { sessionId, questionId }, include: { answers: true } });
     if (!sq) throw new NotFoundException('Not in session');
     if (sq.answers.length > 0) throw new BadRequestException('Answered');
@@ -50,5 +57,14 @@ export class InterviewsService {
     if (!session) return null;
     if (session.status !== InterviewStatus.IN_PROGRESS) throw new BadRequestException('Invalid state');
     return this.prisma.interviewSession.update({ where: { id }, data: { status: InterviewStatus.COMPLETED, endedAt: new Date() } });
+  }
+
+  async cancelSession(id: string) {
+    const session = await this.prisma.interviewSession.findUnique({ where: { id } });
+    if (!session) return null;
+    // Allow cancel if session is not already completed
+    if (session.status === InterviewStatus.COMPLETED) throw new BadRequestException('Cannot cancel a completed session');
+    if (session.status === InterviewStatus.CANCELLED) throw new BadRequestException('Session already cancelled');
+    return this.prisma.interviewSession.update({ where: { id }, data: { status: InterviewStatus.CANCELLED, endedAt: new Date() } });
   }
 }

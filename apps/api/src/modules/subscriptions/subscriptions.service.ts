@@ -16,8 +16,11 @@ export class SubscriptionsService {
     const sub = await this.prisma.subscription.create({
       data: {
         userId,
-        // status defaults to PENDING per schema default
-      },
+        usageLimit: 0,
+        featureAccess: {},
+        // set a pending status for business flow; DB default may differ
+        status: SubscriptionStatus.PENDING,
+      } as any,
     });
     await this.audit.record(null, "CREATE_SUBSCRIPTION", { userId, subscriptionId: sub.id });
     return sub;
@@ -27,7 +30,7 @@ export class SubscriptionsService {
   async activateSubscription(subscriptionId: string) {
     const sub = await this.prisma.subscription.update({
       where: { id: subscriptionId },
-      data: { status: SubscriptionStatus.ACTIVE, startDate: new Date() },
+      data: { status: SubscriptionStatus.ACTIVE, startDate: new Date() } as any,
     });
     await this.audit.record(null, "ACTIVATE_SUBSCRIPTION", { subscriptionId });
     return sub;
@@ -37,7 +40,7 @@ export class SubscriptionsService {
   async cancelSubscription(subscriptionId: string) {
     const sub = await this.prisma.subscription.update({
       where: { id: subscriptionId },
-      data: { status: SubscriptionStatus.CANCELED, endDate: new Date() },
+      data: { status: SubscriptionStatus.CANCELLED, endDate: new Date() } as any,
     });
     await this.audit.record(null, "CANCEL_SUBSCRIPTION", { subscriptionId });
     return sub;

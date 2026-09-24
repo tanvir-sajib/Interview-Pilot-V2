@@ -1,6 +1,5 @@
 import { Controller, Post, Body } from "@nestjs/common";
-import { UsageService } from "./usage.service";
-import { UsageType } from "@prisma/client";
+import { UsageService, UsageType } from "./usage.service";
 
 /** Simple endpoint for recording usage from client applications. */
 @Controller('usage')

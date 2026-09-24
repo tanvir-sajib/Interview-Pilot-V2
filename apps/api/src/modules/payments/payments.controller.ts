@@ -18,7 +18,7 @@ export class PaymentsController {
     }
     try {
       await this.paymentsService.handleWebhook(payload, signature);
-    } catch (e) {
+    } catch (e: any) {
       // Propagate signature errors as BadRequest for clarity.
       throw new BadRequestException(e.message);
     }

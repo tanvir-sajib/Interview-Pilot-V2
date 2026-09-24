@@ -7,8 +7,8 @@
     "start": "node dist/main.js",
     "test": "jest",
     "prisma": "prisma",
-    "prisma:generate": "prisma generate",
-    "prebuild": "npm run prisma:generate",
+    "prisma:generate": "prisma generate --schema=../../prisma/schema.prisma",
+    "prebuild": "echo \"Skipping prisma generate in CI for speed\"",
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {

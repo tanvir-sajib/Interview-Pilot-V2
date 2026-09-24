@@ -1,3 +1,5 @@
+/* global jest */
+
 jest.mock('ioredis', () => {
   const mockRedis = jest.fn().mockImplementation(() => ({
     on: jest.fn(),
