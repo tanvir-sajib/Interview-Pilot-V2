@@ -1,32 +1,34 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { Metric } from "@prisma/client";
+import { UsageType } from "@prisma/client";
 
 /**
- * Service responsible for recording and querying usage metrics.
- * It stores per‑user usage records which can be later consulted for limits.
+ * Service responsible for recording immutable usage ledger entries.
+ * Each call creates a new UsageRecord; no updates are performed.
  */
 @Injectable()
 export class UsageService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async recordUsage(userId: string, metric: Metric, amount: number) {
+  /** Append a usage record to the ledger. */
+  async recordUsage(userId: string, type: UsageType, amount: number) {
     return this.prisma.usageRecord.create({
       data: {
         userId,
-        metric,
+        type,
         amount,
-        period: new Date(),
+        // period removed; using createdAt timestamp automatically
       },
     });
   }
 
-  async getUsageForPeriod(userId: string, metric: Metric, from: Date, to: Date) {
+  /** Retrieve usage for a given type and date range. */
+  async getUsage(userId: string, type: UsageType, from: Date, to: Date) {
     return this.prisma.usageRecord.findMany({
       where: {
         userId,
-        metric,
-        period: {
+        type,
+        createdAt: {
           gte: from,
           lte: to,
         },
