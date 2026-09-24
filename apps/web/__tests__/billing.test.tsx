@@ -1,4 +1,6 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
+
 import BillingAdminPage from '../pages/admin/billing';
 
 test('renders Billing Administration heading', () => {

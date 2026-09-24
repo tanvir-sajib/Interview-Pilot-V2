@@ -1,9 +1,16 @@
-import { NestFactory } from '@nestjs/core';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import 'reflect-metadata';
+import { NestFactory } from '@nestjs/core';
+
 import { AppModule } from './app.module';
-import { ConfigService } from '@nestjs/config';
+
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+
+import { ConfigService } from '@nestjs/config';
 import { CorrelationIdMiddleware } from './middleware/correlation-id.middleware';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,8 +18,16 @@ async function bootstrap() {
   // Global prefix and versioning
   app.setGlobalPrefix('api/v1');
 
-  // Enable CORS in composition
-  app.enableCors({ origin: '*', methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', credentials: true });
+  // Security middlewares
+  app.use(helmet());
+  const corsOrigin = configService.get<string>('CORS_ORIGIN') || 'http://localhost:3000';
+  app.enableCors({ origin: corsOrigin, methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', credentials: true });
+  // Rate limiting on auth login endpoint
+  app.use('/api/v1/auth/login', rateLimit({
+    windowMs: 60 * 1000,
+    max: 5,
+    message: 'Too many login attempts, please try later.',
+  }));
 
   // Request-validation pipe (simple example)
   // app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));

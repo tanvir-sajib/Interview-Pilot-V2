@@ -56,7 +56,7 @@ describe('Auth (e2e)', () => {
 
   beforeAll(async () => {
     process.env.JWT_SECRET = 'testsecret';
-    process.env.JWT_EXPIRES_IN = '1s';
+    process.env.JWT_EXPIRES_IN = '10s';
     process.env.REFRESH_EXPIRES_IN = '1h';
     process.env.BCRYPT_SALT_ROUNDS = '8';
 

@@ -8,7 +8,7 @@ import { EvaluationResult } from '../modules/ai/llm-provider.interface';
  * It is a singleton; the static `instance` is set on init for easy access from
  * background workers that are not part of the Nest DI container.
  */
-@WebSocketGateway({ cors: { origin: '*'} })
+@WebSocketGateway({ cors: { origin: process.env.WEBSOCKET_ORIGIN || 'http://localhost:3000' } })
 @Injectable()
 export class EvaluationGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
