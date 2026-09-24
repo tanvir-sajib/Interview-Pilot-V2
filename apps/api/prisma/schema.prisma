@@ -1,126 +1,3 @@
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["nativeTypes"]
-}
-
-// Datasource connects to PostgreSQL. The actual URL is supplied via DATABASE_URL env var
-// during development or CI.
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-// General enums
-enum Role {
-  ADMIN
-  USER
-  INSTRUCTOR
-}
-
-// Question related enums
-enum QuestionRole {
-  TECHNICAL
-  HR
-}
-
-enum QuestionSeniority {
-  JUNIOR
-  MID
-  SENIOR
-}
-
-enum QuestionCategory {
-  TECHNICAL
-  HR_BEHAVIORAL
-  LEADERSHIP
-  DESIGN
-}
-
-enum QuestionDifficulty {
-  EASY
-  MEDIUM
-  HARD
-}
-
-enum QuestionStatus {
-  DRAFT
-  REVIEW
-  PUBLISHED
-  ARCHIVED
-}
-
-enum QuestionLanguage {
-  EN
-  ES
-  FR
-  DE
-}
-
-// Additional enums
-enum SubscriptionStatus {
-  ACTIVE
-  INACTIVE
-  PENDING
-  CANCELLED
-}
-
-enum PaymentMethod {
-  CREDIT_CARD
-  PAYPAL
-  BANK_TRANSFER
-}
-
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-}
-
-enum Metric {
-  USAGE
-  API_CALLS
-  STORAGE
-}
-
-enum AIJobType {
-  IMAGE
-  TEXT
-  AUDIO
-}
-
-enum AIJobStatus {
-  QUEUED
-  RUNNING
-  SUCCESS
-  FAILED
-}
-
-enum NotificationType {
-  MENTOR_MESSAGE
-  INTERVIEW_REMINDER
-  ALERT
-}
-
-enum Speaker {
-  USER
-  AI
-}
-
-// Session status for interview sessions
-enum InterviewStatus {
-  CREATED
-  READY
-  IN_PROGRESS
-  PROCESSING
-  COMPLETED
-  CANCELLED
-  FAILED
-}
-
-// =======================
-// Core models
-// =======================
 model User {
   id              String            @id @default(uuid())
   email           String            @unique
@@ -137,6 +14,7 @@ model User {
   subscriptions Subscription[]
   usageRecords UsageRecord[]
   notifications Notification[]
+  refreshTokenVersion Int @default(0)
 
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
@@ -144,206 +22,56 @@ model User {
   @@index([email])
 }
 
-model UserProfile {
-  id         String   @id @default(uuid())
-  user User? @relation
-
-  firstName String?
-  lastName  String?
-  avatarUrl String?
-  bio       String?
-}
-
-model Question {
-  id                String            @id @default(uuid())
-  title             String
-  text              String
-  tags              String[]          @default([])
-  authorId          String
-  author            User              @relation(fields: [authorId], references: [id])
-
-  role              QuestionRole
-  seniority         QuestionSeniority
-  category          QuestionCategory
-  difficulty        QuestionDifficulty
-  expectedConcepts  String[]          @default([])
-  rubric            String
-  language          QuestionLanguage
-  status            QuestionStatus
-
-  isActive  Boolean          @default(true)
-  versions  QuestionVersion[]
-  sessionQuestions SessionQuestion[]
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  deletedAt DateTime?
-}
-
-model QuestionVersion {
-  id                  String   @id @default(uuid())
-  questionId          String
-  question            Question @relation(fields: [questionId], references: [id])
-  versionNumber       Int
-
-  role                QuestionRole
-  seniority           QuestionSeniority
-  category            QuestionCategory
-  difficulty          QuestionDifficulty
-  tags                String[]          @default([])
-  expectedConcepts    String[]          @default([])
-  rubric              String?
-  language            QuestionLanguage
-  content             String
-  createdAt           DateTime @default(now())
-}
-
-model InterviewSession {
-  id          String            @id @default(uuid())
-  userId      String
-  user        User              @relation(fields: [userId], references: [id])
-
-  status      InterviewStatus   @default(CREATED)
-  startedAt   DateTime?
-  endedAt     DateTime?
-
-  track       QuestionCategory  @default(TECHNICAL)
-  seniority   QuestionSeniority  @default(JUNIOR)
-
-  questions   SessionQuestion[]
-  metrics     DeliveryMetrics?
-  summary     SessionSummary?
-
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  deletedAt   DateTime?
-}
-
-model SessionQuestion {
-  id            String             @id @default(uuid())
-  sessionId     String
-  session       InterviewSession   @relation(fields: [sessionId], references: [id])
-  questionId    String
-  question      Question           @relation(fields: [questionId], references: [id])
-  order         Int
-  activeAt      DateTime?
-
-  answers       Answer[]
-  createdAt     DateTime            @default(now())
-  @@index([questionId])
-  @@index([sessionId])
-}
-
-model Answer {
-  id                String            @id @default(uuid())
-  sessionQuestionId String
-  sessionQuestion   SessionQuestion   @relation(fields: [sessionQuestionId], references: [id])
-  speaker           Speaker
-  content           String
-  duration          Int?
-  createdAt         DateTime          @default(now())
-  evaluations Evaluation[]
-}
-
-model Evaluation {
-  id          String   @id @default(uuid())
-  answerId    String
-  answer      Answer   @relation(fields: [answerId], references: [id])
-  evaluator   Role
-  score       Int
-  feedback    String?
-  createdAt   DateTime @default(now())
-}
-
-model DeliveryMetrics {
-  id          String   @id @default(uuid())
-  sessionId   String @unique
-  session  InterviewSession @relation(fields: [sessionId], references: [id])
-  speechScore     Int?
-  sentimentScore  Int?
-  recordingUrl    String?
-  createdAt   DateTime @default(now())
-}
-
-model SessionSummary {
-  id          String   @id @default(uuid())
-  sessionId   String @unique
-  session  InterviewSession @relation(fields: [sessionId], references: [id])
-  summaryText String
-  createdAt   DateTime @default(now())
-}
-
-model Plan {
-  id    String @id @default(uuid())
-  name  String
-  price Int
-  subscriptions Subscription[]
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  EXPIRED
 }
 
 model Subscription {
-  id          String            @id @default(uuid())
+  id          String   @id @default(uuid())
   userId      String
-  user        User              @relation(fields: [userId], references: [id])
-  planId      String
-  plan        Plan              @relation(fields: [planId], references: [id])
-  status      SubscriptionStatus
-  startedAt   DateTime          @default(now())
-  endedAt     DateTime?
-  payments    Payment[]
-  createdAt   DateTime          @default(now())
-}
+  status      SubscriptionStatus @default(ACTIVE)
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+  usageLimit  Int
+  featureAccess Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-
-model Payment {
-  id            String   @id @default(uuid())
-  subscription  Subscription @relation(fields: [subscriptionId], references: [id])
-  subscriptionId String @unique
-  amount        Int
-  currency      String
-  paymentMethod PaymentMethod
-  status        PaymentStatus
-  transactionId String @unique
-  createdAt     DateTime @default(now())
-  @@index([subscriptionId])
+  user        User @relation(fields: [userId], references: [id])
+  // Usage records linked via usageRecords relation on User
 }
 
 model UsageRecord {
   id          String   @id @default(uuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  metric      Metric
+  subscriptionId String?
+  type        UsageType
   amount      Int
-  period      DateTime
   createdAt   DateTime @default(now())
+
+  user        User @relation(fields: [userId], references: [id])
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
 }
 
-model AIJob {
-  id          String   @id @default(uuid())
-  type        AIJobType
-  status      AIJobStatus
-  payload     Json
-  createdAt   DateTime @default(now())
-  finishedAt  DateTime?
+enum UsageType {
+  SPEECH_DURATION
+  AI_CALLS
+  // Extend as needed
 }
 
-model Notification {
+model Payment {
   id          String   @id @default(uuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  type        NotificationType
-  title       String
-  body        String
-  read        Boolean  @default(false)
+  amount      Decimal
+  currency    String
+  providerTransactionId String?
+  status      String
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User @relation(fields: [userId], references: [id])
 }
 
-model AuditLog {
-  id          String   @id @default(uuid())
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id])
-  action      String
-  details     Json
-  createdAt   DateTime @default(now())
-  @@index([userId])
-}
-
-// Indexes for performance
