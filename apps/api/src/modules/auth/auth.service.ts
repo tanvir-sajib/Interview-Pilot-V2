@@ -4,7 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 /**
  * AuthService provides registration, login, token refresh, logout, and password change.
@@ -26,16 +26,15 @@ export class AuthService {
     const saltRounds = Number(this.config.get<string>('BCRYPT_SALT_ROUNDS')) || 12;
     const hash = await bcrypt.hash(password, saltRounds);
     const domain = email.split('@')[1];
-    const role: Role = domain === 'admin.example.com' ? 'ADMIN' : 'USER';
-    const user = await this.prisma.user.create({
+    const role = domain === 'admin.example.com' ? 'ADMIN' : 'USER';
+       const user = await this.prisma.user.create({
       data: {
         email,
         password: hash,
         role,
-        profile: { create: {} },
         isActive: true,
         failedLoginAttempts: 0,
-        // `refreshTokenVersion` defaults to 0 in the DB schema; no need to set here.
+        profile: { create: {} as any },
       },
     });
     return this.generateTokens(user.id, user.role);
@@ -44,7 +43,6 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.prisma.user.findUnique({
       where: { email },
-      include: { profile: true },
     });
     if (!user || !user.isActive) throw new UnauthorizedException('Invalid credentials');
     if (user.lockedUntil && user.lockedUntil > new Date()) {
@@ -72,11 +70,11 @@ export class AuthService {
     await this.prisma.user.update({ where: { id: userId }, data: updateData });
   }
 
-  private generateTokens(userId: string, role: Role) {
+  private generateTokens(userId: string, role: string, rtv: number = 0) {
     const payload = { sub: userId, role };
-    const accessToken = this.jwt.sign(payload, { expiresIn: this.config.get<string>('JWT_EXPIRES_IN') });
-    const refreshPayload = { sub: userId, role, tokenType: 'refresh' as const };
-    const refreshToken = this.jwt.sign(refreshPayload, { expiresIn: this.config.get<string>('REFRESH_EXPIRES_IN') });
+    const accessToken = this.jwt.sign(payload, { expiresIn: this.config.get<string>('JWT_EXPIRES_IN') || '15m' });
+    const refreshPayload = { sub: userId, role, tokenType: 'refresh' as const, rtv };
+    const refreshToken = this.jwt.sign(refreshPayload, { expiresIn: this.config.get<string>('REFRESH_EXPIRES_IN') || '7d' });
     return { accessToken, refreshToken };
   }
 
@@ -94,8 +92,8 @@ export class AuthService {
       // Increment version atomically (using raw Prisma update with any to bypass type checking)
       await (this.prisma.user as any).update({ where: { id: user.id }, data: { refreshTokenVersion: tokenVersion + 1 } });
       const newRefreshPayload = { sub: user.id, role: user.role, tokenType: 'refresh' as const, rtv: tokenVersion + 1 };
-      const newRefresh = this.jwt.sign(newRefreshPayload, { expiresIn: this.config.get<string>('REFRESH_EXPIRES_IN') });
-      const newAccess = this.jwt.sign({ sub: user.id, role: user.role }, { expiresIn: this.config.get<string>('JWT_EXPIRES_IN') });
+      const newRefresh = this.jwt.sign(newRefreshPayload, { expiresIn: this.config.get<string>('REFRESH_EXPIRES_IN') || '7d' });
+      const newAccess = this.jwt.sign({ sub: user.id, role: user.role }, { expiresIn: this.config.get<string>('JWT_EXPIRES_IN') || '15m' });
       return { accessToken: newAccess, refreshToken: newRefresh };
     } catch (e) {
       throw new UnauthorizedException('Invalid refresh token');

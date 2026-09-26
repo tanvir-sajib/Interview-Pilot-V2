@@ -5,7 +5,7 @@ import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { v4 as uuidv4 } from 'uuid';
-import { QuestionCategory, QuestionSeniority, QuestionStatus, InterviewStatus } from '@prisma/client';
+
 
 /** Mock Prisma used by interview e2e tests – retained for compatibility. */
 export class MockPrismaService {
@@ -53,7 +53,7 @@ export class MockPrismaService {
 
   interviewSession = {
     create: async (args: any) => {
-      const sess = { id: uuidv4(), ...args.data, status: InterviewStatus.READY, startedAt: null, endedAt: null };
+      const sess = { id: uuidv4(), ...args.data, status: 'READY', startedAt: null, endedAt: null };
       this.interviewSessions.push(sess);
       return sess;
     },

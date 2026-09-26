@@ -1,16 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { createHash } from 'crypto';
-import { QuestionRole, QuestionSeniority, QuestionCategory, QuestionDifficulty, QuestionLanguage, QuestionStatus } from '@prisma/client';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
+import { QuestionStatus } from '@prisma/client';
 
 @Injectable()
 export class QuestionsService {
   constructor(private prisma: PrismaService) {}
 
   async createQuestion(dto: CreateQuestionDto) {
-    const now = new Date();
     const question = await this.prisma.question.create({
       data: {
         title: dto.title,
@@ -23,14 +21,15 @@ export class QuestionsService {
         expectedConcepts: dto.expectedConcepts,
         rubric: dto.rubric,
         language: dto.language,
-        status: QuestionStatus.DRAFT,
+        status: 'DRAFT',
         isActive: true,
-        author: { connect: { id: 'system' } }, // placeholder – will be set in actual controller
+        authorId: 'system',
       },
     });
+
     await this.prisma.questionVersion.create({
       data: {
-        questionId: question.id,
+        question: { connect: { id: question.id } },
         versionNumber: 1,
         role: dto.role,
         seniority: dto.seniority,
@@ -43,6 +42,7 @@ export class QuestionsService {
         content: dto.text,
       },
     });
+
     return question;
   }
 
@@ -57,7 +57,6 @@ export class QuestionsService {
   async updateQuestion(id: string, dto: UpdateQuestionDto) {
     const existing = await this.prisma.question.findUnique({ where: { id } });
     if (!existing) return null;
-    // Create new version with updated fields
     const latestVersion = await this.prisma.questionVersion.findFirst({
       where: { questionId: id },
       orderBy: { versionNumber: 'desc' },
@@ -72,16 +71,15 @@ export class QuestionsService {
       expectedConcepts: dto.expectedConcepts ?? latestVersion!.expectedConcepts,
       rubric: dto.rubric ?? latestVersion!.rubric ?? existing.rubric,
       language: dto.language ?? latestVersion!.language,
-      content: dto.text ?? latestVersion!.content,
     };
     await this.prisma.questionVersion.create({
       data: {
         ...updatedFields,
-        questionId: id,
+        content: dto.text ?? '',
+        question: { connect: { id } },
         versionNumber: newVersionNumber,
       },
     });
-    // Update the question metadata for quick access
     await this.prisma.question.update({
       where: { id },
       data: {
@@ -91,6 +89,7 @@ export class QuestionsService {
     });
     return this.prisma.question.findUnique({ where: { id }, include: { versions: true } });
   }
+
   async setStatus(id: string, status: QuestionStatus) {
     await this.prisma.question.update({ where: { id }, data: { status } });
   }

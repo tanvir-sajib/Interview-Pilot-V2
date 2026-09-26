@@ -4,7 +4,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { PrismaService } from '../../prisma/prisma.service';
 
-@Controller('api/v1/admin')
+@Controller('admin')
 export class AdminController {
   constructor(private readonly prisma: PrismaService) {}
 

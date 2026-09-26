@@ -2,7 +2,7 @@ import { Controller, Post, Get, Put, Delete, Body, Param, UseGuards, HttpCode, H
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { Role } from '@prisma/client'; // using user role for guard
+
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { QuestionsService } from './questions.service';

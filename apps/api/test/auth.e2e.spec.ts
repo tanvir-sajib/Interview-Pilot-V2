@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { v4 as uuidv4 } from 'uuid';
-import { QuestionCategory, QuestionSeniority, QuestionStatus, InterviewStatus, Role } from '@prisma/client';
+
 
 /** Mock Prisma used by older e2e suites – kept for compatibility. */
 export class MockPrismaService {

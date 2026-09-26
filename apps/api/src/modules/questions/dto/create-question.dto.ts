@@ -1,5 +1,11 @@
-import { IsString, IsNotEmpty, IsArray, IsOptional, IsEnum, ArrayNotEmpty, MaxLength, MinLength } from 'class-validator';
-import { QuestionRole, QuestionSeniority, QuestionCategory, QuestionDifficulty, QuestionLanguage } from '@prisma/client';
+import { IsString, IsEnum, IsArray, IsNotEmpty, MinLength, MaxLength, ArrayNotEmpty } from 'class-validator';
+import {
+  QuestionRole,
+  QuestionSeniority,
+  QuestionCategory,
+  QuestionDifficulty,
+  QuestionLanguage,
+} from '@prisma/client';
 
 export class CreateQuestionDto {
   @IsString()
@@ -29,6 +35,7 @@ export class CreateQuestionDto {
   tags!: string[];
 
   @IsArray()
+  @ArrayNotEmpty()
   @IsString({ each: true })
   expectedConcepts!: string[];
 

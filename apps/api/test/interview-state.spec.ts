@@ -4,8 +4,9 @@ import request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { QuestionCategory, QuestionSeniority } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import { QuestionCategory, QuestionSeniority, QuestionStatus, InterviewStatus } from '@prisma/client';
+
 import { MockPrismaService } from './interview.e2e.spec'; // re-use the mock defined there
 
 /**
@@ -29,9 +30,9 @@ describe('Interview state transition edge‑cases', () => {
     mockPrismaService['questions'] = [
       {
         id: uuidv4(),
-        category: QuestionCategory.TECHNICAL,
-        seniority: QuestionSeniority.MID,
-        status: QuestionStatus.PUBLISHED,
+        category: 'TECHNICAL',
+        seniority: 'MID',
+        status: 'PUBLISHED',
         title: 'Sample question',
         text: 'Explain closures.',
         role: 'TECHNICAL',
@@ -71,8 +72,7 @@ describe('Interview state transition edge‑cases', () => {
   it('create interview', async () => {
     const res = await request(app.getHttpServer())
       .post('/interviews')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({ userId: 'dummy', track: QuestionCategory.TECHNICAL, seniority: QuestionSeniority.MID });
+      .set('Authorization', `Bearer ${accessToken}`)      .send({ userId: 'dummy', track: QuestionCategory.TECHNICAL, seniority: QuestionSeniority.MID });
     expect(res.status).toBe(201);
     interviewId = res.body.id;
   });
@@ -104,8 +104,7 @@ describe('Interview state transition edge‑cases', () => {
     // Create a new interview for this test
     const newRes = await request(app.getHttpServer())
       .post('/interviews')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({ userId: 'dummy', track: QuestionCategory.TECHNICAL, seniority: QuestionSeniority.MID });
+      .set('Authorization', `Bearer ${accessToken}`)      .send({ userId: 'dummy', track: QuestionCategory.TECHNICAL, seniority: QuestionSeniority.MID });
     expect(newRes.status).toBe(201);
     const newInterviewId = newRes.body.id;
     // start session

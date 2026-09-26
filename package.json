@@ -3,8 +3,8 @@
   "workspaces": [
     "apps/*",
     "packages/*",
-    "ai-service",
-    "workers"
+    "apps/ai-service",
+    "apps/workers"
   ],
   "scripts": {
     "dev": "echo 'dev script to be added'",
@@ -12,6 +12,8 @@
     "lint": "echo 'lint script to be added'"
   },
   "devDependencies": {
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.0"
   }
 }

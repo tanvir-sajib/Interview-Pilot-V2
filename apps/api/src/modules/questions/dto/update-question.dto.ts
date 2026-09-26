@@ -1,13 +1,22 @@
-import { IsOptional, IsString, IsArray, IsEnum, ArrayNotEmpty } from 'class-validator';
-import { QuestionRole, QuestionSeniority, QuestionCategory, QuestionDifficulty, QuestionLanguage } from '@prisma/client';
+import { IsString, IsEnum, IsOptional, IsArray, ArrayNotEmpty, MinLength, MaxLength, IsNotEmpty } from 'class-validator';
+import {
+  QuestionRole,
+  QuestionSeniority,
+  QuestionCategory,
+  QuestionDifficulty,
+  QuestionLanguage,
+} from '@prisma/client';
 
 export class UpdateQuestionDto {
   @IsOptional()
   @IsString()
+  @MinLength(1)
+  @MaxLength(200)
   title?: string;
 
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   text?: string;
 
   @IsOptional()
@@ -34,6 +43,7 @@ export class UpdateQuestionDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayNotEmpty()
   @IsString({ each: true })
   expectedConcepts?: string[];
 

@@ -10,19 +10,19 @@ import { PrismaService } from '../src/prisma/prisma.service';
  * Mock PrismaService to avoid real DB calls.
  */
 class MockPrismaService {
-  user = { findMany: jest.fn().mockResolvedValue([]) } as any;
-  subscription = { findMany: jest.fn().mockResolvedValue([]) } as any;
-  payment = { findMany: jest.fn().mockResolvedValue([]) } as any;
-  usageRecord = { findMany: jest.fn().mockResolvedValue([]) } as any;
-  auditLog = { findMany: jest.fn().mockResolvedValue([]) } as any;
+  user = { findMany: jest.fn().mockResolvedValue([]) };
+  subscription = { findMany: jest.fn().mockResolvedValue([]) };
+  payment = { findMany: jest.fn().mockResolvedValue([]) };
+  usageRecord = { findMany: jest.fn().mockResolvedValue([]) };
+  auditLog = { findMany: jest.fn().mockResolvedValue([]) };
 }
 
 /**
  * Helper to create an app with a given mocked user role.
  */
-function createAppWithRole(role: string): Promise<INestApplication> {
+function createAppWithRole(role) {
   const mockJwtGuard = {
-    canActivate: (ctx: any) => {
+    canActivate: (ctx) => {
       const request = ctx.switchToHttp().getRequest();
       request.user = { role };
       return true;
@@ -36,7 +36,7 @@ function createAppWithRole(role: string): Promise<INestApplication> {
     .overrideGuard(JwtAuthGuard)
     .useValue(mockJwtGuard)
     .compile()
-    .then((moduleRef: TestingModule) => {
+    .then((moduleRef) => {
       const app = moduleRef.createNestApplication();
       return app.init().then(() => app);
     });
