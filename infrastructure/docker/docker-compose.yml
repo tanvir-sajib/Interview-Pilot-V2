@@ -41,7 +41,7 @@ services:
 
   ai-service:
     build:
-      context: ..
+      context: ./apps/ai-service
       dockerfile: infrastructure/docker/Dockerfile.ai
     ports:
       - "8000:8000"
